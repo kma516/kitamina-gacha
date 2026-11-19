@@ -1,0 +1,21 @@
+[
+  { "id": "karaoke", "name": "カラオケ", "emoji": "🎤", "indoor": true, "priceLevel": 1, "priceText": "1人 500〜1,500円/時間", "group": "both", "enabled": true },
+  { "id": "arcade", "name": "ゲーセン", "emoji": "🕹️", "indoor": true, "priceLevel": 1, "priceText": "〜1,000円", "group": "both", "enabled": true },
+  { "id": "bowling", "name": "ボウリング", "emoji": "🎳", "indoor": true, "priceLevel": 2, "priceText": "1ゲーム 600〜800円", "group": "group", "enabled": true },
+  { "id": "billiards_darts", "name": "ビリヤード・ダーツ", "emoji": "🎱", "indoor": true, "priceLevel": 2, "priceText": "1人 1,000円前後/時間", "group": "group", "enabled": true },
+  { "id": "escape_game", "name": "脱出ゲーム", "emoji": "🔐", "indoor": true, "priceLevel": 3, "priceText": "1人 3,000円前後", "group": "group", "enabled": true },
+  { "id": "cinema", "name": "映画館", "emoji": "🎬", "indoor": true, "priceLevel": 2, "priceText": "学生 1,500円前後", "group": "both", "enabled": true },
+  { "id": "manga_cafe", "name": "漫画・ネットカフェ", "emoji": "📚", "indoor": true, "priceLevel": 1, "priceText": "3時間パック 1,000円前後", "group": "solo", "enabled": true },
+  { "id": "museum", "name": "美術館・博物館", "emoji": "🖼️", "indoor": true, "priceLevel": 1, "priceText": "無料〜1,500円", "group": "both", "enabled": true },
+  { "id": "planetarium", "name": "プラネタリウム", "emoji": "🌌", "indoor": true, "priceLevel": 1, "priceText": "〜1,000円", "group": "both", "enabled": true },
+  { "id": "music_venue", "name": "ライブハウス", "emoji": "🎸", "indoor": true, "priceLevel": 2, "priceText": "当日券 2,000〜4,000円", "group": "both", "enabled": true },
+  { "id": "theatre", "name": "劇場・寄席", "emoji": "🎭", "indoor": true, "priceLevel": 3, "priceText": "2,000円〜", "group": "both", "enabled": true },
+  { "id": "climbing", "name": "ボルダリング", "emoji": "🧗", "indoor": true, "priceLevel": 2, "priceText": "初回 2,000円前後（レンタル込）", "group": "both", "enabled": true },
+  { "id": "sports", "name": "スポーツ施設", "emoji": "🏸", "indoor": true, "priceLevel": 2, "priceText": "施設による", "group": "group", "enabled": true },
+  { "id": "bath", "name": "銭湯・スパ", "emoji": "♨️", "indoor": true, "priceLevel": 1, "priceText": "銭湯 520円前後", "group": "both", "enabled": true },
+  { "id": "books", "name": "本屋", "emoji": "📖", "indoor": true, "priceLevel": 0, "priceText": "見るだけ無料", "group": "solo", "enabled": true },
+  { "id": "subculture", "name": "サブカル・ホビー", "emoji": "🧸", "indoor": true, "priceLevel": 0, "priceText": "見るだけ無料", "group": "both", "enabled": true },
+  { "id": "vintage", "name": "古着屋", "emoji": "👕", "indoor": true, "priceLevel": 0, "priceText": "見るだけ無料", "group": "both", "enabled": true },
+  { "id": "park", "name": "公園", "emoji": "🌳", "indoor": false, "priceLevel": 0, "priceText": "無料", "group": "both", "enabled": true },
+  { "id": "spot", "name": "観光スポット", "emoji": "📸", "indoor": false, "priceLevel": 0, "priceText": "無料〜（展望台は有料あり）", "group": "both", "enabled": true }
+]

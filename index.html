@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="大阪のキタ（梅田）とミナミ（難波）で、暇な時間の遊び場をガチャで1件提案します。" />
+    <meta name="theme-color" content="#ff5a3c" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
+    <title>キタミナガチャ</title>
+  </head>
+  <body>
+    <a class="skip" href="#gacha-button">ガチャボタンへ移動</a>
+    <header class="site-header">
+      <h1><span aria-hidden="true">🎰</span> キタミナガチャ</h1>
+      <p class="tagline">梅田・難波で、次どこ行く？をガチャで決める</p>
+    </header>
+
+    <main id="app">
+      <section id="shared-view" class="shared" hidden aria-labelledby="shared-title"></section>
+
+      <div id="gacha-view">
+        <form id="conditions" class="conditions" aria-label="ガチャの条件">
+          <fieldset class="seg">
+            <legend>エリア</legend>
+            <div class="seg-row">
+              <label><input type="radio" name="area" value="kita" /><span>キタ</span></label>
+              <label><input type="radio" name="area" value="minami" /><span>ミナミ</span></label>
+              <label><input type="radio" name="area" value="any" checked /><span>どっちでも</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="seg">
+            <legend>起点</legend>
+            <div class="seg-row">
+              <label><input type="radio" name="origin" value="current" /><span>現在地</span></label>
+              <label><input type="radio" name="origin" value="station" checked /><span>駅</span></label>
+            </div>
+            <p id="origin-note" class="note" aria-live="polite"></p>
+          </fieldset>
+
+          <fieldset class="seg">
+            <legend>徒歩</legend>
+            <div class="seg-row">
+              <label><input type="radio" name="walk" value="5" /><span>5分</span></label>
+              <label><input type="radio" name="walk" value="10" checked /><span>10分</span></label>
+              <label><input type="radio" name="walk" value="15" /><span>15分</span></label>
+              <label><input type="radio" name="walk" value="20" /><span>20分</span></label>
+              <label><input type="radio" name="walk" value="any" /><span>気にしない</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="seg">
+            <legend>予算</legend>
+            <div class="seg-row">
+              <label><input type="radio" name="budget" value="0" /><span>無料だけ</span></label>
+              <label><input type="radio" name="budget" value="1" /><span>〜¥</span></label>
+              <label><input type="radio" name="budget" value="2" /><span>〜¥¥</span></label>
+              <label><input type="radio" name="budget" value="any" checked /><span>気にしない</span></label>
+            </div>
+            <p class="note">¥=〜1,000円 / ¥¥=〜3,000円（1人の目安）</p>
+          </fieldset>
+
+          <fieldset class="seg">
+            <legend>人数</legend>
+            <div class="seg-row">
+              <label><input type="radio" name="party" value="solo" /><span>ひとり</span></label>
+              <label><input type="radio" name="party" value="group" checked /><span>みんな</span></label>
+            </div>
+          </fieldset>
+
+          <div class="toggles">
+            <label class="toggle"><input type="checkbox" name="indoor" /><span>屋内のみ</span></label>
+            <label class="toggle"><input type="checkbox" name="odai" checked /><span>お題をつける</span></label>
+          </div>
+
+          <div id="excluded" class="excluded" hidden>
+            <p class="excluded-label">今日はいいジャンル（タップで戻す）</p>
+            <ul id="excluded-chips" class="chips"></ul>
+          </div>
+
+          <button id="gacha-button" class="gacha-button" type="submit">
+            <span aria-hidden="true">🎰</span> ガチャを回す
+          </button>
+        </form>
+
+        <section id="course" class="course" hidden aria-labelledby="course-title"></section>
+        <section id="result" class="result" aria-live="polite"></section>
+        <section id="keeps" class="keeps" hidden aria-labelledby="keeps-title"></section>
+      </div>
+
+      <div id="share-dialog" class="share-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="share-dialog-title">
+        <div class="share-panel">
+          <h2 id="share-dialog-title">友達に送る</h2>
+          <label class="share-url-label" for="share-url">共有URL</label>
+          <input id="share-url" class="share-url" type="text" readonly />
+          <div class="share-actions">
+            <button id="share-copy" type="button" class="btn primary">URLをコピー</button>
+            <a id="share-line" class="btn line" target="_blank" rel="noopener noreferrer">LINEで送る</a>
+          </div>
+          <p id="share-status" class="note" aria-live="polite"></p>
+          <button id="share-close" type="button" class="btn ghost">閉じる</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        地図データ ©
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>
+      </p>
+      <p>情報が古い・間違っている場合はOpenStreetMapで修正できます。料金は目安です。</p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

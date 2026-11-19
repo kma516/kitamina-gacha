@@ -1,0 +1,5 @@
+{
+  "osm:node/4950215822": { "exclude": true, "reason": "心斎橋筋商店街の中国語表記の重複" },
+  "osm:node/4888177821": { "exclude": true, "reason": "中国語表記。乗り場はとんぼりリバークルーズで代表" },
+  "osm:way/541582128": { "exclude": true, "reason": "Hankyu Brick Museum（way/1550037708）と重複" }
+}
