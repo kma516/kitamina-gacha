@@ -5,8 +5,11 @@ import { h } from "./dom";
 
 export type Pulled = { spot: Spot; odai: number | null };
 
-export function mapsUrl(lat: number, lon: number): string {
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+const MAP_AREA_WORD: Record<Spot["area"], string> = { kita: "梅田", minami: "難波" };
+
+export function mapsUrl(spot: Pick<Spot, "name" | "area">): string {
+  const q = `${spot.name} ${MAP_AREA_WORD[spot.area]}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 }
 
 const OSM_PREFIX = "https://www.openstreetmap.org/";
@@ -56,7 +59,7 @@ export function spotCard(spot: Spot, o: CardOpts): HTMLElement {
       h("li", null, h("span", { "aria-hidden": "true" }, "💴"), h("span", { class: "sr" }, "料金:"), " ", ...priceNode(spot)),
     ),
     o.odai ? h("p", { class: "odai" }, h("span", { class: "odai-label" }, "お題"), o.odai) : null,
-    h("div", { class: "card-actions" }, ext(mapsUrl(spot.lat, spot.lon), "Googleマップで開く", "btn primary"), ...(o.actions ?? [])),
+    h("div", { class: "card-actions" }, ext(mapsUrl(spot), "Googleマップで開く", "btn primary"), ...(o.actions ?? [])),
     foot,
   );
 }
