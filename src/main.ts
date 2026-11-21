@@ -33,10 +33,10 @@ const spotById = new Map(spots.map((s) => [s.id, s]));
 
 const MAX_KEEPS = 5;
 const RECENT_KEEP = 20;
+/** はしごで、前の軒からこの分数を超えたら「少し遠め」と表示する */
+const HOP_WALK_LIMIT = 10;
 
 /* ---------- 状態（画面内メモリ。保存しない） ---------- */
-
-type CourseItem = Pulled & { widened: boolean };
 
 const state = {
   form: { ...DEFAULT_FORM } as FormState,
@@ -46,7 +46,7 @@ const state = {
   recent: [] as string[],
   result: null as Pulled | null,
   relax: null as Relaxation[] | null,
-  course: [] as CourseItem[],
+  course: [] as Pulled[],
   courseMessage: null as string | null,
   keeps: [] as Pulled[],
   keepMessage: null as string | null,
@@ -221,12 +221,12 @@ function applyRelaxation(r: Relaxation) {
   spin();
 }
 
-/* ---------- キープ ---------- */
+/* ---------- 候補（キープ） ---------- */
 
 function keep(p: Pulled) {
   if (state.keeps.some((k) => k.spot.id === p.spot.id)) return;
   if (state.keeps.length >= MAX_KEEPS) {
-    state.keepMessage = `キープは${MAX_KEEPS}件までです。どれかを外してください`;
+    state.keepMessage = `候補は${MAX_KEEPS}件までです。どれかを外してください`;
   } else {
     state.keeps = [...state.keeps, p];
     state.keepMessage = null;
@@ -244,9 +244,13 @@ function unkeep(id: string) {
 
 /* ---------- はしご ---------- */
 
+function scrollToCourse() {
+  $("course").scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+}
+
 function startCourse() {
   if (!state.result) return;
-  state.course = [{ ...state.result, widened: false }];
+  state.course = [{ ...state.result }];
   state.result = null;
   addHop();
 }
@@ -258,11 +262,11 @@ function addHop() {
     state.courseMessage = "この近くには次がなかった";
   } else {
     remember(got.spot.id);
-    state.course = [...state.course, { spot: got.spot, odai: newOdai(got.spot), widened: got.widened }];
+    state.course = [...state.course, { spot: got.spot, odai: newOdai(got.spot) }];
     state.courseMessage = null;
   }
   renderAll();
-  $("course").scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+  scrollToCourse();
 }
 
 function rerollAt(index: number) {
@@ -272,10 +276,67 @@ function rerollAt(index: number) {
   } else {
     remember(got.spot.id);
     const course = [...state.course];
-    course[index] = { spot: got.spot, odai: newOdai(got.spot), widened: got.widened };
+    course[index] = { spot: got.spot, odai: newOdai(got.spot) };
     state.course = course;
     state.courseMessage = null;
   }
+  renderCourse();
+}
+
+/** はしごの途中で「このジャンルは今日はいい」。ジャンルを除外して、その軒だけ引き直す */
+function skipGenreAt(index: number) {
+  const genreId = state.course[index]?.spot.genre;
+  if (!genreId) return;
+  if (!state.excluded.includes(genreId)) state.excluded = [...state.excluded, genreId];
+  renderExcluded();
+  rerollAt(index);
+}
+
+/** 候補をはしごに入れる。徒歩が遠くても止めない（表示で「少し遠め」と出す） */
+function addKeepToCourse(p: Pulled) {
+  if (state.course.some((c) => c.spot.id === p.spot.id)) {
+    state.courseMessage = `${p.spot.name}はもうはしごに入っています`;
+    renderCourse();
+    return;
+  }
+  if (state.course.length >= MAX_HOPS) {
+    state.courseMessage = `はしごは${MAX_HOPS}軒までです`;
+    renderCourse();
+    return;
+  }
+  if (state.course.length === 0) state.result = null;
+  state.course = [...state.course, { ...p }];
+  state.courseMessage = null;
+  renderAll();
+  scrollToCourse();
+}
+
+/** はしごの軒を前後に動かす。動かした軒のボタンにフォーカスを戻す */
+function moveHop(index: number, delta: -1 | 1) {
+  const to = index + delta;
+  if (to < 0 || to >= state.course.length) return;
+  const course = [...state.course];
+  [course[index], course[to]] = [course[to], course[index]];
+  state.course = course;
+  state.courseMessage = null;
+  renderCourse();
+  focusCourseButton(to, delta === -1 ? "up" : "down");
+}
+
+function focusCourseButton(index: number, act: "up" | "down") {
+  const card = $("course").querySelectorAll(".course-cards > article")[index];
+  const other = act === "up" ? "down" : "up";
+  (card?.querySelector<HTMLElement>(`[data-act="${act}"]`) ?? card?.querySelector<HTMLElement>(`[data-act="${other}"]`))?.focus();
+}
+
+/** はしごから1軒外す。最後の1軒を外したらはしごを終える */
+function removeHop(index: number) {
+  if (state.course.length <= 1) {
+    endCourse();
+    return;
+  }
+  state.course = state.course.filter((_, i) => i !== index);
+  state.courseMessage = null;
   renderCourse();
 }
 
@@ -362,7 +423,7 @@ function resultCard(p: Pulled): HTMLElement {
   const actions = [
     btn("もう1回", spin),
     btn("このジャンルは今日はいい", () => skipGenre(p.spot.genre)),
-    btn(kept ? "キープ済み" : "キープ", () => (kept ? unkeep(p.spot.id) : keep(p)), "btn", { "aria-pressed": String(kept) }),
+    btn(kept ? "候補に入れた" : "候補に入れる", () => (kept ? unkeep(p.spot.id) : keep(p)), "btn", { "aria-pressed": String(kept) }),
     btn("はしごする", startCourse, "btn accent"),
   ];
   return spotCard(p.spot, {
@@ -447,21 +508,37 @@ function renderCourse() {
   }
   const items = state.course.map((c) => c.spot);
   const walks = courseWalks(items);
-  const cards = state.course.map((c, i) =>
-    spotCard(c.spot, {
+  const last = state.course.length - 1;
+  const cards = state.course.map((c, i) => {
+    const actions: Node[] = [];
+    if (i > 0) {
+      actions.push(btn("↑ 上へ", () => moveHop(i, -1), "btn", { "aria-label": `${i + 1}軒目を上へ`, "data-act": "up" }));
+    }
+    if (i < last) {
+      actions.push(btn("↓ 下へ", () => moveHop(i, 1), "btn", { "aria-label": `${i + 1}軒目を下へ`, "data-act": "down" }));
+    }
+    actions.push(
+      btn("この軒を引き直す", () => rerollAt(i), "btn", { "aria-label": `${i + 1}軒目を引き直す` }),
+      btn("このジャンルは今日はいい", () => skipGenreAt(i), "btn", { "aria-label": `${i + 1}軒目のジャンルは今日はいい` }),
+      btn("はしごから外す", () => removeHop(i), "btn ghost", { "aria-label": `${i + 1}軒目をはしごから外す` }),
+    );
+    return spotCard(c.spot, {
       genre: genres.get(c.spot.genre),
       odai: odaiText(odai, c),
       headingLevel: 3,
       badge: `${i + 1}軒目`,
-      walkText: i === 0 ? `${originLabel(c.spot)}から徒歩${walks[0]}分` : `${i}軒目から徒歩${walks[i]}分${c.widened ? "（少し遠め）" : ""}`,
-      actions: [btn("この軒を引き直す", () => rerollAt(i), "btn", { "aria-label": `${i + 1}軒目を引き直す` })],
-    }),
-  );
+      walkText:
+        i === 0
+          ? `${originLabel(c.spot)}から徒歩${walks[0]}分`
+          : `${i}軒目から徒歩${walks[i]}分${walks[i] > HOP_WALK_LIMIT ? "（少し遠め）" : ""}`,
+      actions,
+    });
+  });
   const actions = h(
     "div",
     { class: "course-actions" },
     state.course.length < MAX_HOPS && !state.courseMessage?.includes("次がなかった")
-      ? btn(`${state.course.length + 1}軒目を引く`, addHop, "btn accent")
+      ? btn("はしごする", addHop, "btn accent")
       : null,
     btn("コースを友達に送る", () =>
       share({ mode: "course", items: state.course.map((c) => ({ spotId: c.spot.id, odai: c.odai })) }), "btn primary"),
@@ -486,7 +563,7 @@ function renderKeeps() {
   }
   replaceChildren(
     el,
-    h("h2", { id: "keeps-title", class: "section-title" }, `キープ（${state.keeps.length}/${MAX_KEEPS}）`),
+    h("h2", { id: "keeps-title", class: "section-title" }, `候補（${state.keeps.length}/${MAX_KEEPS}）`),
     h(
       "ul",
       { class: "keep-list" },
@@ -497,7 +574,8 @@ function renderKeeps() {
           { class: "keep-item" },
           h("span", { class: "keep-emoji", "aria-hidden": "true" }, g?.emoji ?? "📍"),
           h("span", { class: "keep-name" }, k.spot.name, h("small", null, ` ${g?.name ?? ""}・${AREAS[k.spot.area].short}`)),
-          btn("外す", () => unkeep(k.spot.id), "btn small ghost", { "aria-label": `${k.spot.name}をキープから外す` }),
+          btn("はしごに入れる", () => addKeepToCourse(k), "btn small", { "aria-label": `${k.spot.name}をはしごに入れる` }),
+          btn("外す", () => unkeep(k.spot.id), "btn small ghost", { "aria-label": `${k.spot.name}を候補から外す` }),
         );
       }),
     ),
